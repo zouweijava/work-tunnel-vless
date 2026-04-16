@@ -2,13 +2,15 @@ FROM alpine:latest
 
 WORKDIR /app
 
-RUN apk add --no-cache curl unzip
+RUN apk add --no-cache curl tzdata
 
-# 下载 work-tunnel-vless 核心程序
-RUN curl -L -o work-tunnel.zip https://github.com/luck666/work-tunnel-vless/releases/download/v1.0/work-tunnel-linux-amd64.zip
-RUN unzip work-tunnel.zip && chmod +x work-tunnel
+# 直接下载二进制文件，不使用zip，彻底解决解压报错
+RUN curl -L --ipv4 -o work-tunnel \
+    https://github.com/luck666/work-tunnel-vless/raw/main/work-tunnel-linux-amd64
 
-# 环境变量（back4app 会自动覆盖这里的值）
+RUN chmod +x work-tunnel
+
+# 环境变量（back4app 后台可以覆盖）
 ENV UUID=00000000-0000-0000-0000-000000000000
 ENV VLESS_WSPATH=/api-vless
 ENV PORT=8080
