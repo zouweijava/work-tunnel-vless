@@ -1,18 +1,13 @@
-FROM golang:alpine AS builder
-
-WORKDIR /app
-
-RUN apk add --no-cache git
-
-# 直接从源码编译，彻底解决文件下载失败问题
-RUN git clone https://github.com/luck666/work-tunnel-vless.git /src
-WORKDIR /src
-RUN go build -o work-tunnel main.go
-
 FROM alpine:latest
+
 WORKDIR /app
 
-COPY --from=builder /src/work-tunnel /app/
+RUN apk add --no-cache curl
+
+# 下载你自己 fork 仓库里的二进制文件
+RUN curl -L \
+  https://github.com/zouweijava/work-tunnel-vless/raw/main/work-tunnel-linux-amd64 \
+  -o work-tunnel
 
 RUN chmod +x work-tunnel
 
