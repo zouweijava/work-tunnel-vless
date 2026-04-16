@@ -1,28 +1,18 @@
-FROM node:18-alpine
-
-# Docker buildx 自动注入，无需手动传入
-ARG TARGETARCH
+FROM alpine:latest
 
 WORKDIR /app
 
-# 安装 cloudflared 及其依赖，根据目标架构选择对应二进制
-RUN apk add --no-cache curl ca-certificates tzdata && \
-    case "${TARGETARCH}" in \
-      arm64) ARCH="arm64" ;; \
-      arm)   ARCH="arm" ;; \
-      *)     ARCH="amd64" ;; \
-    esac && \
-    curl -L "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${ARCH}" \
-    -o /usr/local/bin/cloudflared \
-    && chmod +x /usr/local/bin/cloudflared
+RUN apk add --no-cache curl unzip
 
-COPY package*.json ./
-RUN npm ci
+# 下载 work-tunnel-vless 核心程序
+RUN curl -L -o work-tunnel.zip https://github.com/luck666/work-tunnel-vless/releases/download/v1.0/work-tunnel-linux-amd64.zip
+RUN unzip work-tunnel.zip && chmod +x work-tunnel
 
-COPY . .
+# 环境变量（back4app 会自动覆盖这里的值）
+ENV UUID=00000000-0000-0000-0000-000000000000
+ENV VLESS_WSPATH=/api-vless
+ENV PORT=8080
 
-# 使用 shell 脚本启动服务
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
+EXPOSE 8080
 
-CMD ["/app/start.sh"] 
+CMD ["/app/work-tunnel"]
